@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -32,7 +32,7 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="min-h-screen bg-sky-50 font-['Baloo_2',sans-serif] text-slate-800 selection:bg-yellow-200">
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -51,6 +51,6 @@ export default function App() {
           <Route path="/student/leaderboard" element={<Leaderboard />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
