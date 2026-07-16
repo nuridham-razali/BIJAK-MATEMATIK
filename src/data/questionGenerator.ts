@@ -72,6 +72,7 @@ export function generateQuestionsForTopic(topicId: string, year: number): Questi
 
   // Topic Checkers
   const isPecahan = title.includes("pecahan");
+  const isNomborBulat = title.includes("nombor bulat");
   const isPerpuluhan = title.includes("perpuluhan");
   const isWang = title.includes("wang");
   const isMasa = title.includes("masa") || title.includes("waktu");
@@ -120,6 +121,7 @@ export function generateQuestionsForTopic(topicId: string, year: number): Questi
     let activeCategory = "";
     const possibleCats = [];
     if (isPecahan) possibleCats.push("pecahan");
+    if (isNomborBulat) possibleCats.push("nombor_bulat");
     if (isPerpuluhan) possibleCats.push("perpuluhan");
     if (isWang) possibleCats.push("wang");
     if (isMasa) possibleCats.push("masa");
@@ -135,7 +137,111 @@ export function generateQuestionsForTopic(topicId: string, year: number): Questi
       activeCategory = possibleCats[rand(0, possibleCats.length - 1)];
     }
 
-    if (activeCategory === "pecahan") {
+    if (activeCategory === "nombor_bulat") {
+      let maxNum = 100;
+      if (year === 1) maxNum = 100;
+      else if (year === 2) maxNum = 1000;
+      else if (year === 3) maxNum = 10000;
+      else if (year === 4) maxNum = 100000;
+      else if (year === 5) maxNum = 1000000;
+      else maxNum = 10000000;
+
+      const type = rand(1, 3);
+      if (type === 1) { // Nilai tempat
+        const initialNum = rand(Math.floor(maxNum/10), maxNum - 1);
+        let numStr = initialNum.toString();
+        const pos = rand(0, numStr.length - 1);
+        const digit = numStr[pos];
+        let newNumStr = "";
+        for (let j = 0; j < numStr.length; j++) {
+           if (j !== pos && numStr[j] === digit) {
+              let d = (parseInt(digit) + rand(1, 8)) % 10;
+              if (j === 0 && d === 0) d = 1;
+              newNumStr += d.toString();
+           } else {
+              newNumStr += numStr[j];
+           }
+        }
+        numStr = newNumStr;
+        const num = parseInt(numStr);
+        const places = ["sa", "puluh", "ratus", "ribu", "puluh ribu", "ratus ribu", "juta"];
+        const placeIdx = numStr.length - 1 - pos;
+        ans = places[placeIdx];
+        text = `Apakah nilai tempat bagi digit ${digit} dalam nombor ${num}?`;
+        let opts = [places[Math.max(0, placeIdx - 1)], places[placeIdx], places[Math.min(places.length - 1, placeIdx + 1)], places[Math.min(places.length - 1, placeIdx + 2)]].sort(() => Math.random() - 0.5);
+        opts = [...new Set(opts)];
+        while (opts.length < 4) {
+          const p = places[rand(0, Math.min(places.length - 1, numStr.length - 1))];
+          if (!opts.includes(p)) opts.push(p);
+        }
+        options = opts.sort(() => Math.random() - 0.5);
+        explanation = `Digit ${digit} berada di kedudukan ${places[placeIdx]}.`;
+      } else if (type === 2) { // Nilai digit
+         const initialNum = rand(Math.floor(maxNum/10), maxNum - 1);
+        let numStr = initialNum.toString();
+        const pos = rand(0, numStr.length - 1);
+        const digit = numStr[pos];
+        let newNumStr = "";
+        for (let j = 0; j < numStr.length; j++) {
+           if (j !== pos && numStr[j] === digit) {
+              let d = (parseInt(digit) + rand(1, 8)) % 10;
+              if (j === 0 && d === 0) d = 1;
+              newNumStr += d.toString();
+           } else {
+              newNumStr += numStr[j];
+           }
+        }
+        numStr = newNumStr;
+        const num = parseInt(numStr);
+         const placeIdx = numStr.length - 1 - pos;
+         ans = (parseInt(digit) * Math.pow(10, placeIdx)).toString();
+         text = `Apakah nilai digit bagi ${digit} dalam nombor ${num}?`;
+         let opts = [
+           (parseInt(digit) * Math.pow(10, placeIdx)).toString(),
+           (parseInt(digit) * Math.pow(10, Math.max(0, placeIdx - 1))).toString(),
+           (parseInt(digit) * Math.pow(10, Math.min(6, placeIdx + 1))).toString(),
+           (parseInt(digit) * Math.pow(10, Math.min(6, placeIdx + 2))).toString()
+         ];
+         opts = [...new Set(opts)];
+         while (opts.length < 4) {
+           opts.push((parseInt(digit) * Math.pow(10, rand(0, 6))).toString());
+           opts = [...new Set(opts)];
+         }
+         options = opts.sort(() => Math.random() - 0.5);
+         explanation = `Nilai digit bagi ${digit} di kedudukan tersebut ialah ${ans}.`;
+      } else { // Bundar
+         const num = rand(Math.floor(maxNum/10), maxNum - 1);
+         const places = ["puluh", "ratus", "ribu", "puluh ribu", "ratus ribu"];
+         const validPlaces = places.slice(0, num.toString().length - 1);
+         const place = validPlaces.length > 0 ? validPlaces[rand(0, validPlaces.length - 1)] : "puluh";
+         
+         let divider = 10;
+         if (place === "ratus") divider = 100;
+         if (place === "ribu") divider = 1000;
+         if (place === "puluh ribu") divider = 10000;
+         if (place === "ratus ribu") divider = 100000;
+
+         const rounded = Math.round(num / divider) * divider;
+         ans = rounded.toString();
+         text = `Bundarkan ${num} kepada ${place} yang terdekat.`;
+         let opts = [
+           rounded.toString(),
+           (Math.floor(num / divider) * divider).toString(),
+           (Math.ceil(num / divider) * divider).toString(),
+           (rounded + divider).toString()
+         ];
+         opts = [...new Set(opts)];
+         while (opts.length < 4) {
+           opts.push((Math.round((num + rand(-5, 5)*divider) / divider) * divider).toString());
+           opts = [...new Set(opts)];
+         }
+         options = opts.sort(() => Math.random() - 0.5);
+         explanation = `Jika digit sebelah kanan nombor yang dibundarkan adalah 5 atau lebih, tambah 1 kepada nombor tersebut. Jawapannya ialah ${ans}.`;
+      }
+      
+      addQuestion({ difficulty, text, options, correctAnswerIndex: options.indexOf(ans), explanation, imageUrl });
+    
+    } else if (activeCategory === "pecahan") {
       // Fraction generator (uniform difficulty as requested)
       const ops = ['+', '-'];
       if (year >= 5) ops.push('*');
