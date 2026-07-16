@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /families/{familyId} {
+      allow read, write: if request.auth != null && request.auth.uid == familyId;
+      
+      match /students/{studentId} {
+        allow read, write: if request.auth != null && request.auth.uid == familyId;
+        
+        match /results/{resultId} {
+          allow read, write: if request.auth != null && request.auth.uid == familyId;
+        }
+      }
+    }
+    match /questions/{topicId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
